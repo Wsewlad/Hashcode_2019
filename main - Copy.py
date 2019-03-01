@@ -41,50 +41,32 @@ def sort_by_count(list):
     list.sort(key=lambda x: x.count, reverse=True)
 
 
-def similar_tags_count(t1, t2):
-    res = 0
+def get_similar_tags(t1, t2):
+    res = []
     for x in t1:
         if x in t2:
-            res += 1
+            res.append(x)
     return res
 
 
-def get_unique(tags):
-    unique_list = []
-    for x in tags:
-        if x not in unique_list:
-            unique_list.append(x)
-    return unique_list
+def check_tags(t1, t2):
+    equal = get_similar_tags(t1, t2)
+    res = {"t1": 0, "equal": len(equal), "t2": 0}
+
+    for t in t1:
+        if t not in equal:
+            res["t1"] += 1
+
+    for t in t2:
+        if t not in equal:
+            res["t2"] += 1
+
+    return res
 
 
-def compare(object1, object2):
-    equal = 0
-    equal_tags = []
-    diff1 = 0
-    diff2 = 0
-    for i in object1.tags:
-        changed = False
-        for j in object2.tags:
-            if i == j:
-                equal = equal + 1
-                changed = True
-                equal_tags.append(i)
-                break
-        if not changed:
-            diff1 = diff1 + 1
-
-    for i in object2.tags:
-        if not (i in equal_tags):
-            found = False
-            for j in object1.tags:
-                if j == i:
-                    found = True
-                    break
-            if not found:
-                diff2 = diff2 + 1
-
-    values = [equal, diff1, diff2]
-    return min(values)
+def find_factor(slide1, slide2):
+    slide_tags = check_tags(slide1.tags, slide2.tags)
+    return min(slide_tags["t1"], slide_tags["equal"], slide_tags["t2"])
 
 
 def choose_by_tags(slides_array):
@@ -94,7 +76,7 @@ def choose_by_tags(slides_array):
         obj1_index = 0
         obj2_index = 0
         for j in range(i + 1, len(slides_array)):
-            min_value_tags = compare(slides_array[i], slides_array[j])
+            min_value_tags = find_factor(slides_array[i], slides_array[j])
             if min_value_tags > maximum:
                 maximum = min_value_tags
                 obj1_index = i
@@ -108,13 +90,13 @@ def choose_by_tags(slides_array):
 
 def search_best_slide(photos):
     for i in range(len(photos) - 1):
-        if i + 1 >= len(photos) - 1:
+        if i + 1 > len(photos) - 1:
             break
-        min = similar_tags_count(photos[i].tags, photos[i + 1].tags)
+        min = len(get_similar_tags(photos[i].tags, photos[i + 1].tags))
         obj1_index = i
         obj2_index = i + 1
         for j in range(i + 2, len(photos)):
-            min_value_tags = similar_tags_count(photos[i].tags, photos[j].tags)
+            min_value_tags = len(get_similar_tags(photos[i].tags, photos[j].tags))
             if min_value_tags < min:
                 min = min_value_tags
                 obj1_index = i
@@ -146,14 +128,17 @@ if len(sys.argv) > 1:
 
         sort_by_count(slides)
 
-        res_slides = choose_by_tags(slides)
-        # print_slides(res_slides)
+        print_slides(slides)
 
-        f = open(inputName + ".res", "w")
-        f.write(str(len(res_slides)) + '\n')
-        for i in res_slides:
-            if len(i.ids) == 2:
-                f.write(str(i.ids[0]) + " " + str(i.ids[1]) + '\n')
-            else:
-                f.write(str(i.ids[0]) + '\n')
+        res_slides = choose_by_tags(slides)
+
+        print_slides(res_slides)
+
+        # f = open(inputName + ".res", "w")
+        # f.write(str(len(res_slides)) + '\n')
+        # for s in res_slides:
+        #     if len(s.ids) == 2:
+        #         f.write(str(s.ids[0]) + " " + str(s.ids[1]) + '\n')
+        #     else:
+        #         f.write(str(s.ids[0]) + '\n')
 
